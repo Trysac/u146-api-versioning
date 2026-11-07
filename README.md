@@ -1,55 +1,50 @@
-# api-versioning
+# @trysac/api-versioning
 
-[![npm version](https://img.shields.io/npm/v/@trysac/api-versioning.svg)](https://www.npmjs.com/package/@trysac/api-versioning)
-[![license: MIT](https://img.shields.io/npm/l/@trysac/api-versioning.svg)](LICENSE)
-[![CI](https://github.com/Trysac/u146-api-versioning/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u146-api-versioning/actions/workflows/ci.yml)
+Framework-agnostic API version resolution from path or header, with RFC 9745 Deprecation, RFC 8594 Sunset, and Link headers, and automatic 410 Gone responses after sunset.
 
-Framework-agnostic API version resolution from path or header, with RFC 9745 Deprecation, RFC 8594 Sunset and Link headers and 410 after sunset
+## The Problem
 
-## Problem
+APIs often announce deprecations in blog posts while removing versions on dates unknown to clients. Versioning logic is frequently scattered across disparate routers, and the standard `Deprecation` and `Sunset` headers are omitted. Furthermore, path-based and header-based versioning often conflict silently when clients provide both.
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and why existing
-packages do not solve it well. Keep it factual; link to an issue or decision record when there is one.
+## Installation
 
-## Install
-
-```sh
+```bash
 npm install @trysac/api-versioning
 ```
-
-Requires Node.js 20 or newer. The package ships ES modules with TypeScript declarations.
 
 ## Usage
 
 ```ts
-import { greet } from "@trysac/api-versioning";
-
-// Build a greeting; surrounding whitespace is ignored.
-const message = greet("  Ada ");
-console.log(message); // "Hello, Ada!"
-
-try {
-  greet("   ");
-} catch (error) {
-  console.error((error as Error).message); // "name must not be empty"
-}
+import { createVersioning } from "@trysac/api-versioning";
+const v = createVersioning({
+  versions: [{ version: "1" }, { version: "2" }],
+  defaultVersion: "1",
+});
+const res = v.resolve({ path: "/v2/users", headers: {} }, new Date());
+if (res.ok) console.log(`Version: ${res.version}, Path: ${res.path}`);
 ```
 
-## API
+## Public API Summary
 
-| Export | Signature | Description |
-|---|---|---|
-| `greet` | `(name: string) => string` | Placeholder API; replace it with the real one. |
+### Configuration Options (`VersioningConfig`)
+- `versions`: `VersionInfo[]` (required, max 100 entries)
+- `defaultVersion`: `string` (required, must exist in `versions`)
+- `header`: `string` (optional, defaults to `API-Version`, must be alphanumeric)
+- `pathPattern`: `RegExp` (optional, defaults to `/^\/v(\d{1,3})(?=\/|$)/`)
 
-## Development
+### Error Codes
+- `invalid_config`: Thrown when configuration constraints are violated (e.g., duplicate versions, invalid URLs, sunset before deprecation).
+- `400 / 410 (via Resolution)`: `version_conflict` (divergent path/header), `unsupported_version` (missing version), `version_sunset` (version removed), `invalid_header` (malformed header).
 
-```sh
-npm install
-npm run check   # lint, format, types, tests with coverage, docs, secrets
-```
+### Limits
+- Path length: 4096 characters.
+- Version format: 1-3 digits, no leading zeros.
+- Header value: Max 16 characters, digits only.
 
-See [AGENTS.md](AGENTS.md) for the full command list and [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow.
+## Why not ad hoc router prefixes?
 
-## License
+Ad hoc solutions suffer from lack of standard header support and fragmented logic. This library provides a single source of truth for resolution and lifecycle, making the versioning policy testable in isolation without a full server implementation.
 
-[MIT](LICENSE) © 2026 Miguel Gomez
+## Security
+
+See [docs/SECURITY.md](docs/SECURITY.md) for the threat model and input validation limits.
