@@ -1,33 +1,32 @@
-# Project record: api-versioning
+# Project Record
 
 ## Objective
 
-Framework-agnostic API version resolution from path or header, with RFC 9745 Deprecation, RFC 8594 Sunset and Link headers and 410 after sunset
-
-State the measurable outcome this utility must deliver and who it is for.
+To provide a framework-agnostic, testable TypeScript library that centralizes API versioning resolution, enforces RFC-compliant deprecation/sunset workflows, and automatically manages the transition to 410 Gone status.
 
 ## Scope
 
-In scope:
+- Version resolution: Integer major versions (1-999) extracted via path prefix or custom request headers.
+- Conflict handling: Automatic 400 Bad Request if path and header versions diverge.
+- Standard headers: RFC 9745 (`Deprecation` structured dates, `Link` rel="deprecation"), RFC 8594 (`Sunset` IMF-fixdate, `Link` rel="sunset").
+- Lifecycle: Automatic 410 Gone responses (RFC 9457) when current time exceeds `sunsetAt`.
+- Integration: Connect/Express middleware for automatic resolution and header injection.
 
-- The public API documented in the README.
+## Out of Scope
 
-Out of scope:
+- Date-based versioning (e.g., `2024-06-01`).
+- Content-type negotiation via `Accept` headers.
+- Router dispatch or internal route handling.
+- OpenAPI/Swagger schema generation.
 
-- List what this utility deliberately does not do.
+## Factory run u146 (measured from API usage)
 
-## Timeline
+| Phase | Model | Batch | Input | Output | Cache write | Cache read | Cost (USD) |
+|---|---|---|---|---|---|---|---|
+| generation | gemini-3.8-flash | yes | 4374 | 53046 | 0 | 0 | 0.1011 |
+| fix-1 | gemini-3.8-flash | no | 28625 | 7968 | 0 | 51034 | 0.0552 |
+| fix-2 | gemini-3.8-flash | no | 36544 | 315 | 0 | 99161 | 0.0360 |
+| audit | gemini-3.1-flash-lite | no | 59197 | 224 | 0 | 162792 | 0.0192 |
+| docs | gemini-3.1-flash-lite | no | 17412 | 1481 | 0 | 0 | 0.0066 |
 
-| Date | Milestone |
-|---|---|
-| 2026 | Repository created from the factory utility template. |
-
-## Effort metrics
-
-Measured values only. Leave "pending measurement" until a real figure is recorded; never estimate here.
-
-| Metric | Value | Source |
-|---|---|---|
-| Tokens (input / output) | pending measurement | factory ledger |
-| Hours (human) | pending measurement | time log |
-| Cost (USD) | pending measurement | factory ledger |
+Total: $0.2181. Prices: Anthropic list prices.

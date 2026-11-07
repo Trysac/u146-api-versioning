@@ -1,28 +1,12 @@
-# Security practices
+# Security Model
 
-How this repository keeps the package and its users safe. The disclosure policy is in
-[../SECURITY.md](../SECURITY.md).
+## Defended Threats
 
-## Secrets
+- **Resource Exhaustion (DoS)**: Paths are limited to 4096 characters to prevent excessive memory usage. The version catalog is strictly capped at 100 entries to prevent memory exhaustion from large configurations.
+- **Input Sanitization**: Version headers are strictly validated against digits and a 16-character limit. Non-digit, malformed, or oversized headers are rejected with `invalid_header`.
+- **Header Injection**: Deprecation and sunset links are validated during configuration; they must be absolute `https:` URLs and cannot contain illegal characters like `>` or whitespace, preventing header injection or response splitting.
 
-- No secrets, tokens or credentials in the repository, commit history, logs or prompts.
-- `gitleaks` runs as the last step of `npm run check` and as a dedicated CI job. Its configuration is
-  `.gitleaks.toml`.
-- Publishing credentials live only in the CI secret store or the maintainer's local npm configuration.
+## Not Defended
 
-## Dependencies
-
-- Runtime dependencies are avoided; development dependencies are limited to the toolchain listed in
-  [STACK.md](STACK.md).
-- Dependabot opens weekly updates for npm packages and GitHub Actions.
-- Commit the generated `package-lock.json` so installs are reproducible.
-
-## Code
-
-- No `eval`, dynamic `Function` construction or shelling out from library code.
-- Inputs from callers are validated and rejected with explicit errors.
-
-## Publishing
-
-- Packages are published from a clean checkout after `npm run check` passes.
-- Only `dist/` is included in the published tarball.
+- **Upstream Security**: The library does not sanitize or validate request bodies, nor does it protect against standard web vulnerabilities (e.g., CSRF, XSS) inherent to the HTTP handlers the user provides.
+- **Clock Tampering**: Time-based enforcement relies on the provided `Date` instance or the system clock; accuracy depends on the host environment.
