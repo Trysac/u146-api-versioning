@@ -8,9 +8,15 @@ APIs often announce deprecations in blog posts while removing versions on dates 
 
 ## Installation
 
-```bash
-npm install @trysac/api-versioning
+Not published to npm yet. Build it from a clone, then install it from the local path:
+
+```sh
+git clone https://github.com/Trysac/u146-api-versioning.git
+cd u146-api-versioning && npm ci && npm run build
+cd ../your-project && npm install ../u146-api-versioning
 ```
+
+Imports keep the package name: `import { ... } from "@trysac/api-versioning"`.
 
 ## Usage
 
